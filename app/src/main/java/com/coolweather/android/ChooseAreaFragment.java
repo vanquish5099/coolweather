@@ -19,6 +19,7 @@ import android.widget.Toast;
 import com.coolweather.android.db.City;
 import com.coolweather.android.db.County;
 import com.coolweather.android.db.Province;
+import com.coolweather.android.gson.Weather;
 import com.coolweather.android.util.HttpUtil;
 import com.coolweather.android.util.Utility;
 
@@ -41,7 +42,7 @@ public class ChooseAreaFragment extends Fragment {
 
     public static final int LEVEL_COUNTY = 2;
 
-//    private ProgressDialog progressDialog;
+    private ProgressDialog progressDialog;
 
     private TextView titleText;
 
@@ -109,10 +110,17 @@ public class ChooseAreaFragment extends Fragment {
                     queryCounties();
                 } else if (currentLevel == LEVEL_COUNTY) {
                     String weatherId = countyList.get(position).getWeatherId();
-                    Intent intent = new Intent(getActivity(), WeatherAcitvity.class);
-                    intent.putExtra("weather_id", weatherId);
-                    startActivity(intent);
-                    getActivity().finish();
+                    if(getActivity() instanceof MainActivity){
+                        Intent intent = new Intent(getActivity(), WeatherAcitvity.class);
+                        intent.putExtra("weather_id", weatherId);
+                        startActivity(intent);
+                        getActivity().finish();
+                    }else if(getActivity() instanceof WeatherAcitvity){
+                        WeatherAcitvity activity = (WeatherAcitvity) getActivity();
+                        activity.drawerLayout.closeDrawers();
+                        activity.swipeRefresh.setRefreshing(true);
+                        activity.requestWeather(weatherId);
+                    }
                 }
             }
         });
@@ -199,7 +207,7 @@ public class ChooseAreaFragment extends Fragment {
      * 根据传入的地址和类型从服务器上查询省市县数据。
      */
     private void queryFromServer(String address, final String type) {
-//        showProgressDialog();
+        showProgressDialog();
         HttpUtil.sendOkHttpRequest(address, new Callback() {
             @Override
             public void onResponse(Call call, Response response) throws IOException {
@@ -216,7 +224,7 @@ public class ChooseAreaFragment extends Fragment {
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-//                            closeProgressDialog();
+                            closeProgressDialog();
                             if ("province".equals(type)) {
                                 queryProvinces();
                             } else if ("city".equals(type)) {
@@ -234,7 +242,7 @@ public class ChooseAreaFragment extends Fragment {
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-//                        closeProgressDialog();
+                        closeProgressDialog();
                         Toast.makeText(getContext(), "加载失败", Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -247,21 +255,21 @@ public class ChooseAreaFragment extends Fragment {
     /**
      * 显示进度对话框
      */
-//    private void showProgressDialog() {
-//        if (progressDialog == null) {
-//            progressDialog = new ProgressDialog(getActivity());
-//            progressDialog.setMessage("正在加载...");
-//            progressDialog.setCanceledOnTouchOutside(false);
-//        }
-//        progressDialog.show();
-//    }
+    private void showProgressDialog() {
+        if (progressDialog == null) {
+            progressDialog = new ProgressDialog(getActivity());
+            progressDialog.setMessage("正在加载...");
+            progressDialog.setCanceledOnTouchOutside(false);
+        }
+        progressDialog.show();
+    }
 
     /**
      * 关闭进度对话框
      */
-//    private void closeProgressDialog() {
-//        if (progressDialog != null) {
-//            progressDialog.dismiss();
-//        }
-//    }
+    private void closeProgressDialog() {
+        if (progressDialog != null) {
+            progressDialog.dismiss();
+        }
+    }
 }
